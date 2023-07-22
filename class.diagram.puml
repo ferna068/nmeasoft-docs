@@ -1,0 +1,206 @@
+@startuml ClassDiagram
+
+package Nmeasoft {
+
+  file servers.json [
+    file servers.json 
+    {{json
+      {
+        "servers" : [
+          {
+            "serverId" : 1,
+            "port" : 10100,
+            "description" : "GPS-Server"
+          },
+          {
+            "serverId" : 2,
+            "port" : 10200,
+            "description" : "RAR-Server"
+          }
+        ],
+        "lastUpdate" : "21072023"
+      }
+    }}
+  ]
+
+  file devices.json [
+    file devices.json 
+    {{json
+      {
+        "devices" : [
+          {
+            "deviceId" : 1,
+            "deviceType" : "GPS",
+            "sentences" : [
+              "GGA",
+              "GLL",
+              "RMC",
+              "ZDA"
+            ],
+            "interval" : 2,
+            "isAddChecksum" : true,
+            "serverId" : 1
+          },
+          {
+            "deviceId" : 2,
+            "deviceType" : "RAR",
+            "sentences" : [
+              "TLL",
+              "TTM"
+            ],
+            "interval" : 1,
+            "isAddChecksum" : false, 
+            "serverId" : 2
+          }
+        ],
+        "lastUpdate" : "21072023"
+      }
+    }}
+  ]
+
+  database redis {
+    folder nmeaobjects {
+
+    } 
+  }
+
+  enum DeviceType {
+    AIS
+    CUSTOM 
+    GPS 
+    RAR 
+  }
+
+  enum GpsSentence {
+    GGA
+    GLL
+    RMC
+    ZDA
+  }
+
+  enum RarSentence {
+    TLL
+    TTL 
+  }
+
+  enum AisSentence {
+    VDM  
+    VDO 
+  }
+
+  class Module {
+    -Servers : List<NmeaServer>
+    -Devices : List<Devices>
+    -loadServers() : void
+    -loadDevices() : void
+    -loadObjects() : void 
+    -run() : void
+  }
+
+  class Server {
+    -ServerId : Int 
+    -Ip : String 
+    +Port : Int
+    +Id : Int 
+    +Devices : List<Device> 
+    +Server(ip, port)
+    +start() : Boolean
+    +stop() : void 
+    +onNewConnection() : void
+  }
+
+  class Position {
+    +Latitude : Double
+    +Longitude : Double
+    +Altitude : Double
+  }
+
+  abstract class NmeaObject {
+    ~Position : Position
+    ~Course : Double 
+    ~Speed : Double 
+    ~LastUpdate : DateTime
+    ~DeviceId : Int  
+  }
+
+  class GpsObject {
+    SatelitesUsed : Int 
+  }
+
+  class AisObject {
+    +MMSI : String 
+    +ShipName : String 
+    +Destination : String
+    +CallSign : String 
+    +IMO : String
+    +ETA : DateTime 
+  }
+
+  class RarObject {
+    +TrackNumber : Int 
+    +TrackName : String 
+    +Status : Int 
+    +DistanceFromGps : Double 
+    +BearingFromGps : Double 
+  }
+
+  abstract class Device {
+    ~DeviceId : Int 
+    ~Interval : Int
+    ~DeviceType : DeviceType
+    ~IsAddChecksum : Boolean
+    ~Timer : Timer
+    ~Server : Server
+    -onTimeOut() : void 
+    -addChecksum(data: String) : String
+    +generateFrame() : void 
+  }
+
+  class AisDevice {
+    +Sentences : List<AisSentence>
+    +AisObject : NmeaObject
+  }
+  
+  class CustomDevice {
+    +Sentences : List<String>
+  }
+
+  class GpsDevice {
+    +Sentences : List<GpsSentence>
+    +GpsObject : NmeaObject
+  }
+
+  class RarDevice {
+    +Sentences : List<RarSentence>
+    +RarObject : NmeaObject
+  }
+
+
+  Module o-- servers.json
+  Module o-- devices.json 
+  Module o-- redis
+  Module *-- Server
+  Module *-- Device
+
+  Server "0..*" -- "1..1" Device : contain
+
+  NmeaObject *-- Position
+  NmeaObject <|-- GpsObject
+  NmeaObject <|-- RarObject
+  NmeaObject <|-- AisObject
+
+  Device *-- DeviceType
+  Device <|-- AisDevice
+  Device <|-- CustomDevice
+  Device <|-- GpsDevice
+  Device <|-- RarDevice
+
+  GpsDevice *-- NmeaObject
+  RarDevice *-- NmeaObject
+  AisDevice *-- NmeaObject
+  GpsDevice *-- GpsSentence
+  RarDevice *-- RarSentence
+  AisDevice *-- AisSentence
+}
+
+@enduml
