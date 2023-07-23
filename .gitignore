@@ -1,2 +1,3 @@
-# matches any files and directories with the name test
+# matches any files and directories with the name out
 out/
+out/*.*
