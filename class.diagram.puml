@@ -30,6 +30,7 @@ package Nmeasoft {
         "devices" : [
           {
             "deviceId" : 1,
+            "name" : "GPS-1",
             "deviceType" : "GPS",
             "sentences" : [
               "GGA",
@@ -43,6 +44,7 @@ package Nmeasoft {
           },
           {
             "deviceId" : 2,
+            "name" : "RAR-1",
             "deviceType" : "RAR",
             "sentences" : [
               "TLL",
@@ -89,8 +91,8 @@ package Nmeasoft {
   }
 
   class Module {
-    -Servers : List<NmeaServer>
-    -Devices : List<Devices>
+    -Servers : List<Server>
+    -Devices : List<Device>
     -loadServers() : void
     -loadDevices() : void
     -loadObjects() : void 
@@ -101,11 +103,12 @@ package Nmeasoft {
     -ServerId : Int 
     -Ip : String 
     +Port : Int
-    +Id : Int 
-    +Devices : List<Device> 
+    +Description : String 
+    +DeviceIds : List<String> 
     +Server(ip, port)
     +start() : Boolean
     +stop() : void 
+    +response(sentence : String) : void
     +onNewConnection() : void
   }
 
@@ -145,15 +148,17 @@ package Nmeasoft {
   }
 
   abstract class Device {
-    ~DeviceId : Int 
+    ~DeviceId : Int
+    ~Name : String 
     ~Interval : Int
     ~DeviceType : DeviceType
     ~IsAddChecksum : Boolean
+    ~ServerId : Int 
     ~Timer : Timer
     ~Server : Server
     -onTimeOut() : void 
     -addChecksum(data: String) : String
-    +generateFrame() : void 
+    +generateSentence() : void 
   }
 
   class AisDevice {
