@@ -1,2 +1,2 @@
-# Out folder with images of the analysis
-/out
+# matches any files and directories with the name test
+out
