@@ -4,3 +4,4 @@ out/*.*
 
 # Only include svg files
 !out/*.svg
+!out/*.*.svg
