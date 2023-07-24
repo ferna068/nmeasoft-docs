@@ -1,5 +1,4 @@
 # matches any files and directories with the name out
-out/
 out/*.*
 
 # Only include svg files
